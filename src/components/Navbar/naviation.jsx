@@ -23,11 +23,7 @@ const NavBar = () => {
 
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const navItems = [
-    { title: "sample01", path: "/sample01" },
-    { title: "sample02", path: "/sample02" },
-    { title: "sample03", path: "/sample03" },
-  ];
+  const navItems = [{ title: "F1 Champions", path: "/sample01" }];
 
   const navItemVariants = {
     hidden: { opacity: 0, x: -100 },
@@ -95,13 +91,25 @@ const NavBar = () => {
             </IconButton>
           )}
 
-          <Typography
-            variant={isMobile ? "h6" : "h4"}
-            component="div"
-            sx={{ flexGrow: isMobile ? 1 : 0, textAlign: "center" }}
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={navItemVariants}
+            transition={{ type: "spring", stiffness: 50, delay: 0.3 }}
           >
-            Fromula 1
-          </Typography>
+            <Typography
+              variant={isMobile ? "h6" : "h4"}
+              component="div"
+              sx={{
+                flexGrow: isMobile ? 1 : 0,
+                textAlign: "center",
+                color: "#F05941",
+              }}
+            >
+              Formula 1
+            </Typography>
+          </motion.div>
+
           {!isMobile && (
             <motion.div
               initial="hidden"
