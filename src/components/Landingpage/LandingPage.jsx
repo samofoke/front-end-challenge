@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { useTheme, useMediaQuery } from "@mui/material";
 import formulaF1 from "../../images/sample1.jpg";
+import backImage from "../../images/sample2.jpg";
 
 const LandingPage = () => {
   const theme = useTheme();
@@ -67,6 +68,8 @@ const LandingPage = () => {
       initial="hidden"
       animate="visible"
       style={{
+        overflow: "hidden",
+        position: "relative",
         display: "flex",
         flexDirection: isMobile ? "column" : "row",
         alignItems: "center",
@@ -76,6 +79,21 @@ const LandingPage = () => {
         boxSizing: "border-box",
       }}
     >
+      <div
+        style={{
+          backgroundImage: `url(${backImage})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          opacity: 0.1,
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: -1,
+        }}
+      />
       <motion.div
         variants={textVariants}
         className="landing-text"
@@ -85,9 +103,7 @@ const LandingPage = () => {
           textAlign: "left",
           marginRight: isMobile ? "0" : "2rem",
           marginBottom: isMobile ? "2rem" : "0",
-          backgroundColor: "#202020",
           padding: "20px",
-          borderRadius: "10px",
         }}
       >
         <h1>Explore Detailed Race Winners for Each F1 Season</h1>

@@ -12,8 +12,10 @@ import {
   TableRow,
   Paper,
   Box,
+  Button,
   Typography,
   Container,
+  CircularProgress,
 } from "@mui/material";
 import Timeline from "@mui/lab/Timeline";
 import TimelineItem from "@mui/lab/TimelineItem";
@@ -24,20 +26,24 @@ import TimelineDot from "@mui/lab/TimelineDot";
 
 const YearsData = () => {
   const [selectedYear, setSelectedYear] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [loadingYear, setLoadingYear] = useState(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const rowsPerPage = 10;
 
   const getDataForYear = async (year) => {
+    setCurrentPage(0);
+    setLoadingYear(year);
     try {
       const response = await axios.get(
-        `http://ergast.com/api/f1/${year}/results.json`
+        `http://ergast.com/api/f1/${year}/results/1.json`
       );
       setSelectedYear(response.data);
-      setLoading(false);
       console.log("get data", response.data);
     } catch (error) {
       setError(error.message);
-      setLoading(false);
+    } finally {
+      setLoadingYear(null);
     }
   };
 
@@ -92,14 +98,29 @@ const YearsData = () => {
     splitYears.push(years.slice(i, i + 5));
   }
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  const resetView = () => {
+    setSelectedYear(null);
+  };
+
+  const handleNext = () => {
+    setCurrentPage((prev) => prev + 1);
+  };
+
+  const handlePrevious = () => {
+    if (currentPage > 0) setCurrentPage((prev) => prev - 1);
+  };
+
+  const racesToShow = selectedYear
+    ? selectedYear.MRData.RaceTable.Races.slice(
+        currentPage * rowsPerPage,
+        (currentPage + 1) * rowsPerPage
+      )
+    : [];
 
   return (
     <Container>
       {!selectedYear ? (
-        <Stack direction="column" spacing={2}>
+        <Stack direction="column" spacing={2} sx={{ marginTop: "40px" }}>
           {splitYears.map((chunk, index) => (
             <Fragment key={index}>
               <motion.div
@@ -133,13 +154,29 @@ const YearsData = () => {
                           variants={hoverVariants}
                           whileHover="hover"
                         >
-                          <TimelineItem onClick={() => handleYearOnClick(year)}>
+                          <TimelineItem
+                            onClick={() => handleYearOnClick(year)}
+                            sx={{
+                              cursor: "pointer",
+                              "&:hover": {
+                                "& .MuiTimelineContent-root": {
+                                  color: "#F05941",
+                                },
+                              },
+                            }}
+                          >
                             <TimelineSeparator>
                               <TimelineDot />
                               <TimelineConnector />
                             </TimelineSeparator>
                             <TimelineContent sx={{ color: "#EEF0E5" }}>
                               {year}
+                              {loadingYear === year && (
+                                <CircularProgress
+                                  size={20}
+                                  sx={{ marginLeft: 1 }}
+                                />
+                              )}
                             </TimelineContent>
                           </TimelineItem>
                         </motion.div>
@@ -168,20 +205,56 @@ const YearsData = () => {
             Season {selectedYear.MRData.RaceTable.season}
           </Typography>
           <TableContainer component={Paper}>
+            <Button sx={{ margin: 2 }} variant="outlined" onClick={resetView}>
+              Close
+            </Button>
             <Table>
               <TableHead>
                 <TableRow>
                   <TableCell>Race name</TableCell>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Winner</TableCell>
+                  <TableCell>Circuit Name</TableCell>
+                  <TableCell>Constructor</TableCell>
+                  <TableCell>Nationality</TableCell>
+                  <TableCell>Laps</TableCell>
+                  <TableCell>Grid Position</TableCell>
+                  <TableCell>Final Position</TableCell>
+                  <TableCell>Points</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {selectedYear.MRData.RaceTable.Races.map((race, index) => (
+                {racesToShow.map((race, index) => (
                   <TableRow key={index}>
                     <TableCell>{race.raceName}</TableCell>
+                    <TableCell>{race.date}</TableCell>
+                    <TableCell>{race.Circuit.circuitName}</TableCell>
+                    <TableCell>{`${race.Results[0].Driver.givenName} ${race.Results[0].Driver.familyName}`}</TableCell>
+                    <TableCell>{race.Results[0].Constructor.name}</TableCell>
+                    <TableCell>{race.Results[0].Driver.nationality}</TableCell>
+                    <TableCell>{race.Results[0].laps}</TableCell>
+                    <TableCell>{race.Results[0].grid}</TableCell>
+                    <TableCell>{race.Results[0].positionText}</TableCell>
+                    <TableCell>{race.Results[0].points}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+            <Box sx={{ display: "flex", justifyContent: "flex-end", p: 2 }}>
+              <Button onClick={handlePrevious} disabled={currentPage === 0}>
+                Previous
+              </Button>
+              <Button
+                onClick={handleNext}
+                disabled={
+                  racesToShow.length < rowsPerPage ||
+                  (currentPage + 1) * rowsPerPage >=
+                    selectedYear.MRData.RaceTable.Races.length
+                }
+              >
+                Next
+              </Button>
+            </Box>
           </TableContainer>
         </Box>
       )}
