@@ -15,7 +15,8 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import IconButton from "@mui/material/IconButton";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link, Outlet } from "react-router-dom";
+import { Link } from "react-scroll";
+import { Outlet } from "react-router-dom";
 
 const NavBar = () => {
   const theme = useTheme();
@@ -23,7 +24,7 @@ const NavBar = () => {
 
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const navItems = [{ title: "F1 Champions", path: "/sample01" }];
+  const navItems = [{ title: "F1 Champions", id: "yearsData" }];
 
   const navItemVariants = {
     hidden: { opacity: 0, x: -100 },
@@ -56,9 +57,17 @@ const NavBar = () => {
         <List>
           {navItems.map((item) => (
             <ListItem key={item.title} disablePadding>
-              <ListItemButton component={Link} to={item.path}>
-                <ListItemText primary={item.title} />
-              </ListItemButton>
+              <Link
+                to={item.id}
+                spy={true}
+                smooth={true}
+                offset={-70}
+                duration={500}
+              >
+                <ListItemButton>
+                  <ListItemText primary={item.title} />
+                </ListItemButton>
+              </Link>
             </ListItem>
           ))}
         </List>
@@ -118,14 +127,16 @@ const NavBar = () => {
               transition={{ type: "spring", stiffness: 50, delay: 0.3 }}
             >
               {navItems.map((item) => (
-                <Button
+                <Link
                   key={item.title}
-                  color="inherit"
-                  component={Link}
-                  to={item.path}
+                  to={item.id}
+                  spy={true}
+                  smooth={true}
+                  offset={-70}
+                  duration={500}
                 >
-                  {item.title}
-                </Button>
+                  <Button color="inherit">{item.title}</Button>
+                </Link>
               ))}
             </motion.div>
           )}

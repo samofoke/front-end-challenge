@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useState, useEffect } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import {
@@ -16,6 +16,10 @@ import {
   Typography,
   Container,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
 } from "@mui/material";
 import Timeline from "@mui/lab/Timeline";
 import TimelineItem from "@mui/lab/TimelineItem";
@@ -29,6 +33,8 @@ const YearsData = () => {
   const [error, setError] = useState(null);
   const [loadingYear, setLoadingYear] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
+  const [worldChampion, setWorldChampion] = useState(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const rowsPerPage = 10;
 
   const getDataForYear = async (year) => {
@@ -39,13 +45,36 @@ const YearsData = () => {
         `http://ergast.com/api/f1/${year}/results/1.json`
       );
       setSelectedYear(response.data);
-      console.log("get data", response.data);
+      // console.log("get data", response.data);
+
+      const championResponse = await axios.get(
+        `http://ergast.com/api/f1/${year}/driverStandings/1.json`
+      );
+      if (
+        championResponse.data.MRData.StandingsTable.StandingsLists.length > 0
+      ) {
+        setWorldChampion(
+          championResponse.data.MRData.StandingsTable.StandingsLists[0]
+            .DriverStandings[0].Driver.driverId
+        );
+      } else {
+        setWorldChampion(null); // Handle case when no world champion data is available
+      }
+      // console.log("chap: ", championResponse.data.MRData.StandingsTable);
     } catch (error) {
       setError(error.message);
     } finally {
       setLoadingYear(null);
     }
   };
+
+  useEffect(() => {
+    // console.log(selectedYear);
+    if (selectedYear && selectedYear.MRData.RaceTable.Races.length === 0) {
+      setError("No data available for this year.");
+      setIsDialogOpen(true);
+    }
+  }, [selectedYear]);
 
   const contentVariants = {
     hidden: { opacity: 0 },
@@ -81,12 +110,8 @@ const YearsData = () => {
 
   const handleYearOnClick = (year) => {
     getDataForYear(year);
-    console.log("Data: ", year);
+    // console.log("Data: ", year);
   };
-
-  if (error) {
-    return <div>Errror: {error}</div>;
-  }
 
   const years = [];
   for (let year = 2005; year <= new Date().getFullYear(); year++) {
@@ -100,6 +125,7 @@ const YearsData = () => {
 
   const resetView = () => {
     setSelectedYear(null);
+    setWorldChampion(null);
   };
 
   const handleNext = () => {
@@ -118,7 +144,7 @@ const YearsData = () => {
     : [];
 
   return (
-    <Container>
+    <Container id="yearsData">
       {!selectedYear ? (
         <Stack direction="column" spacing={2} sx={{ marginTop: "40px" }}>
           {splitYears.map((chunk, index) => (
@@ -224,20 +250,29 @@ const YearsData = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {racesToShow.map((race, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{race.raceName}</TableCell>
-                    <TableCell>{race.date}</TableCell>
-                    <TableCell>{race.Circuit.circuitName}</TableCell>
-                    <TableCell>{`${race.Results[0].Driver.givenName} ${race.Results[0].Driver.familyName}`}</TableCell>
-                    <TableCell>{race.Results[0].Constructor.name}</TableCell>
-                    <TableCell>{race.Results[0].Driver.nationality}</TableCell>
-                    <TableCell>{race.Results[0].laps}</TableCell>
-                    <TableCell>{race.Results[0].grid}</TableCell>
-                    <TableCell>{race.Results[0].positionText}</TableCell>
-                    <TableCell>{race.Results[0].points}</TableCell>
-                  </TableRow>
-                ))}
+                {racesToShow.map((race, index) => {
+                  const isChampion =
+                    race.Results[0].Driver.driverId === worldChampion;
+                  return (
+                    <TableRow
+                      key={index}
+                      style={isChampion ? { backgroundColor: "#C3EDC0" } : null}
+                    >
+                      <TableCell>{race.raceName}</TableCell>
+                      <TableCell>{race.date}</TableCell>
+                      <TableCell>{`${race.Results[0].Driver.givenName} ${race.Results[0].Driver.familyName}`}</TableCell>
+                      <TableCell>{race.Circuit.circuitName}</TableCell>
+                      <TableCell>{race.Results[0].Constructor.name}</TableCell>
+                      <TableCell>
+                        {race.Results[0].Driver.nationality}
+                      </TableCell>
+                      <TableCell>{race.Results[0].laps}</TableCell>
+                      <TableCell>{race.Results[0].grid}</TableCell>
+                      <TableCell>{race.Results[0].positionText}</TableCell>
+                      <TableCell>{race.Results[0].points}</TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
             <Box sx={{ display: "flex", justifyContent: "flex-end", p: 2 }}>
@@ -258,6 +293,22 @@ const YearsData = () => {
           </TableContainer>
         </Box>
       )}
+      <Dialog
+        open={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            {error}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsDialogOpen(false)} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

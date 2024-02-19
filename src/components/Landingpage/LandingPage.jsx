@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { useTheme, useMediaQuery } from "@mui/material";
+import { Typography, useTheme, useMediaQuery } from "@mui/material";
 import formulaF1 from "../../images/sample1.jpg";
 import backImage from "../../images/sample2.jpg";
 
@@ -106,11 +106,13 @@ const LandingPage = () => {
           padding: "20px",
         }}
       >
-        <h1>Explore Detailed Race Winners for Each F1 Season</h1>
-        <p>
+        <Typography variant="h2" component="h1" sx={{ color: "#FBFBFB" }}>
+          Explore Detailed Race Winners for Each F1 Season
+        </Typography>
+        <Typography variant="body1" sx={{ color: "#FBFBFB", mt: 2 }}>
           Discover the champions of every race in each F1 season with just a
           click. Get ready to dive into the thrilling world of Formula 1.
-        </p>
+        </Typography>
       </motion.div>
       <motion.img
         variants={imageVariants}
